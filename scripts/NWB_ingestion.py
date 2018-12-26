@@ -89,7 +89,8 @@ for mouse_dir in mouse_dirs:
         )
 
         # -- Image segmentation processing module
-        img_seg_mod = nwbfile.create_processing_module('Image-Segmentation', 'Plane segmentation and ROI identification')
+        img_seg_mod = nwbfile.create_processing_module('Image-Segmentation',
+                                                       'Plane segmentation and ROI identification')
 
         img_segmentation = nwb_ophys.ImageSegmentation(name = 'img_seg')
         img_seg_mod.add_data_interface(img_segmentation)
@@ -142,6 +143,7 @@ for mouse_dir in mouse_dirs:
         dF_F = nwb_ophys.DfOverF(name = 'deconvolved dF-over-F')
         trial_seg_mod.add_data_interface(dF_F)
 
+
         # now build "RoiResponseSeries" by ingesting data
         def build_roi_series(data_string_name, post_data, dyn_table):
             data = post_data[data_string_name].traces.transpose([1, 0, 2])
@@ -154,6 +156,7 @@ for mouse_dir in mouse_dirs:
                 description = 'ROIs x time x trial'
             )
             return roi_resp_series
+
 
         # ingest each trial-based dataset, time-lock to different event types
         data_names = ['firstSideTryAl', 'firstSideTryAl_COM',
@@ -174,4 +177,3 @@ for mouse_dir in mouse_dirs:
 
         break
     break
-
