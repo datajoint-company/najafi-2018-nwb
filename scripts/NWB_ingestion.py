@@ -112,11 +112,11 @@ for mouse_dir in mouse_dirs:
         # start inserting ROI mask
         tmp = np.empty(moremat['idx_components'].shape)
         tmp.fill(np.nan)
-        neuron_type = tmp
+        neuron_type = tmp.copy()
         neuron_type[np.where(moremat['badROIs01'] == 0)] = moremat['inhibitRois_pix']
-        roi2surr_sig = tmp
+        roi2surr_sig = tmp.copy()
         roi2surr_sig[np.where(moremat['badROIs01'] == 0)] = moremat['roi2surr_sig']
-        offsets_ch1_pix = tmp
+        offsets_ch1_pix = tmp.copy()
         offsets_ch1_pix[np.where(moremat['badROIs01'] == 0)] = moremat['offsets_ch1_pix']
 
         for idx, ival in enumerate(moremat['idx_components']):
