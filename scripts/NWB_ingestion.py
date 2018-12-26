@@ -4,8 +4,6 @@ from dateutil.tz import tzlocal
 import pytz
 import re
 
-
-import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io as sio
 import pynwb
@@ -13,152 +11,167 @@ from pynwb import NWBFile, NWBHDF5IO
 from pynwb import ophys as nwb_ophys
 
 
-# Load data - mouse 1 _ fni16
-
-path = os.path.join('data', 'data', 'mouse1_fni16', '150817')
-more_fname = 'more_150817_001_ch2-PnevPanResults-170808-190057.mat'
-post_fname = 'post_150817_001_ch2-PnevPanResults-170808-190057.mat'
-
-moremat = sio.loadmat(os.path.join(path, more_fname), struct_as_record = False, squeeze_me = True)
-postmat = sio.loadmat(os.path.join(path, post_fname), struct_as_record = False, squeeze_me = True)
-
-alldata_frameTimes = postmat['alldata_frameTimes']
-
-
-# NWB 2.0
-# step 1: ingest metadata (hard-coded for now ...)
-
-# -- NWB file - a NWB2.0 file for each session
+# Setup some metadata information
 datetime_format_yymmdd = '%y%m%d'
-session_start_time = datetime.strptime('150817', datetime_format_yymmdd)
-session_start_time.astimezone(pytz.timezone('US/Eastern'))  # assuming the recording is done at NY, NY
+timezone = pytz.timezone('US/Eastern')  # assuming the recording is done at NY, NY
 
-nwbfile = NWBFile(
-    session_description = '150817_001_ch2-PnevPanResults-170808-190057',
-    identifier = '150817_001_ch2-PnevPanResults-170808-190057.mat',
-    session_id = '150817_001_ch2-PnevPanResults-170808-190057',
-    session_start_time = session_start_time,
-    file_create_date = datetime.now(tzlocal()),
-    experimenter = 'Farzaneh Najafi',
-    institution = 'Cold Spring Harbor Laboratory',
-    related_publications = 'https://doi.org/10.1101/354340'
-)
+experimenter = 'Farzaneh Najafi'
+institution = 'Cold Spring Harbor Laboratory'
+related_publications = 'https://doi.org/10.1101/354340'
 
-# -- imaging plane - the plane info ophys was performed on (again hard-coded here)
-device = pynwb.device.Device('imaging_device_1')
-nwbfile.add_device(device)
-optical_channel = nwb_ophys.OpticalChannel('my_optchan', 'description', 500.)
-imaging_plane = nwbfile.create_imaging_plane(
-    name = 'img_pln',
-    optical_channel = optical_channel,
-    device = device,
-    description = 'imaging plane 123 ',
-    excitation_lambda = 123.0,
-    imaging_rate = 123.0,
-    indicator = 'GFP',
-    location = 'brain loc #1',
-    manifold = np.ones((5, 5, 3)),
-    conversion = 1.23,
-    unit = 'meter'
-)
+# Load data
+data_path = os.path.join('data', 'data')
+mouse_dirs = [n for n in os.listdir(data_path) if
+              os.path.isdir(os.path.join(data_path, n))]
+# Looping through each mouse
+for mouse_dir in mouse_dirs:
+    sess_dirs = [n for n in os.listdir(os.path.join(data_path, mouse_dir)) if
+                 os.path.isdir(os.path.join(data_path, mouse_dir, n))]
+    # Looping through all session
+    for sess_dir in sess_dirs:
+        fnames = os.listdir(os.path.join(data_path, mouse_dir, sess_dir))
 
-# -- image segmentation
+        for fname in fnames:
+            if re.match('more', fname):
+                moremat = sio.loadmat(os.path.join(data_path, mouse_dir, sess_dir, fname),
+                                      struct_as_record = False, squeeze_me = True)
+            if re.match('post', fname):
+                postmat = sio.loadmat(os.path.join(data_path, mouse_dir, sess_dir, fname),
+                                      struct_as_record = False, squeeze_me = True)
 
-img_segmentation = nwb_ophys.ImageSegmentation(name='img_seg')
-nwbfile.add_processing_module([img_segmentation])
+        # NWB 2.0
+        # step 1: ingest metadata (hard-coded for now ...)
+        file_name = re.sub('more_|post_|.mat', '', fnames[0])
 
-plane_segmentation = nwb_ophys.PlaneSegmentation(
-    name = 'pln_seg',
-    description = 'description here',
-    imaging_plane = imaging_plane
-)
-img_segmentation.add_plane_segmentation([plane_segmentation])
+        # -- NWB file - a NWB2.0 file for each session
+        session_start_time = datetime.strptime(sess_dir, datetime_format_yymmdd)
+        session_start_time.astimezone(timezone)
+        session_id = file_name.split('-')[-1]  # assuming the last 6-digits is the session id
+        nwbfile = NWBFile(
+            session_description = file_name,
+            identifier = mouse_dir + '_' + sess_dir + '_' + file_name,
+            session_id = session_id,
+            session_start_time = session_start_time,
+            file_create_date = datetime.now(tzlocal()),
+            experimenter = experimenter,
+            institution = institution,
+            related_publications = related_publications
+        )
+        # -- subject
+        subj = pynwb.file.Subject(
+            subject_id = mouse_dir,
+            age = '',
+            description = '',
+            genotype = '',
+            sex = '',
+            species = '',
+            weight = ''
+        )
+        nwbfile.subject = subj
+        print(f'NWB file created: {mouse_dir}; {sess_dir}; {session_id}')
 
-# add more columns
-plane_segmentation.add_column(name = 'roi_id', description = 'roi id')
-plane_segmentation.add_column(name = 'roi_status', description = 'good or bad ROI')
-plane_segmentation.add_column(name = 'fitness', description = '')
-plane_segmentation.add_column(name = 'neuron_type', description = 'excitatory or inhibitory')
-plane_segmentation.add_column(name = 'roi2surr_sig', description = '')
-plane_segmentation.add_column(name = 'offsets_ch1_pix', description = '')
+        # -- imaging plane - the plane info ophys was performed on (again hard-coded here)
+        device = pynwb.device.Device('imaging_device_1')
+        nwbfile.add_device(device)
+        optical_channel = nwb_ophys.OpticalChannel('my_optchan', 'description', 500.)
+        imaging_plane = nwbfile.create_imaging_plane(
+            name = 'img_pln',
+            optical_channel = optical_channel,
+            device = device,
+            description = 'imaging plane 123 ',
+            excitation_lambda = 123.0,
+            imaging_rate = 123.0,
+            indicator = 'GFP',
+            location = 'brain loc #1',
+            manifold = np.ones((5, 5, 3)),
+            conversion = 1.23,
+            unit = 'meter'
+        )
 
-# start inserting ROI mask
-tmp = np.empty(moremat['idx_components'].shape)
-tmp.fill(np.nan)
-neuron_type = tmp
-neuron_type[np.where(moremat['badROIs01'] == 0)] = moremat['inhibitRois_pix']
-roi2surr_sig = tmp
-roi2surr_sig[np.where(moremat['badROIs01'] == 0)] = moremat['roi2surr_sig']
-offsets_ch1_pix = tmp
-offsets_ch1_pix[np.where(moremat['badROIs01'] == 0)] = moremat['offsets_ch1_pix']
+        # -- Image segmentation processing module
+        img_seg_mod = nwbfile.create_processing_module('Image-Segmentation', 'Plane segmentation and ROI identification')
 
-for idx, idval in enumerate(moremat['idx_components']):
-    plane_segmentation.add_roi(
-        roi_id = idval,
-        image_mask = moremat['mask'][:, :, idx],
-        roi_status = 'good' if moremat['badROIs01'][idx] == 0 else 'bad',
-        fitness = moremat['fitness'][idx],
-        neuron_type = 'inhibitory' if neuron_type[idx] == 1 else 'excitatory' if neuron_type[idx] == 0 else 'unknown',
-        roi2surr_sig = roi2surr_sig[idx],
-        offsets_ch1_pix = offsets_ch1_pix[idx]
-    )
+        img_segmentation = nwb_ophys.ImageSegmentation(name = 'img_seg')
+        img_seg_mod.add_data_interface(img_segmentation)
 
-# create a ROI region table
-roi_region = plane_segmentation.create_roi_table_region(
-    name = 'good_roi',
-    description = 'good roi region table',
-    region = (np.where(moremat['badROIs01'] == 0)[0]).tolist()
-)
-# roi_region = nwb_ophys.DynamicTableRegion(
-#     name = 'good_roi',
-#     description = 'good roi region table',
-#     data = (np.where(moremat['badROIs01'] == 0)[0]).tolist(),
-#     table = plane_segmentation
-# )
-# create an "analysis" group
-dF_F = nwb_ophys.DfOverF(name='dF over F')
-nwbfile.add_analysis(dF_F)
+        plane_segmentation = nwb_ophys.PlaneSegmentation(
+            name = 'pln_seg',
+            description = 'description here',
+            imaging_plane = imaging_plane
+        )
+        img_segmentation.add_plane_segmentation([plane_segmentation])
 
-# now build "RoiResponseSeries" by ingesting data
-# let's just do this for trial #1 for now
-def build_roi_series(data_string_name, post_data, dyn_table):
-    trial_num = 1
-    roi_resp_series = nwb_ophys.RoiResponseSeries(
-        name = data_string_name,
-        data = post_data[data_string_name].traces.transpose([1, 0, 2]),
-        #data = post_data[data_string_name].traces.transpose([1, 0, 2]),
-        unit = '',
-        rois = dyn_table,
-        timestamps = post_data[data_string_name].time,
-        description = 'ROIs x time x trial'
-    )
-    return roi_resp_series
+        # add more columns
+        plane_segmentation.add_column(name = 'roi_id', description = 'roi id')
+        plane_segmentation.add_column(name = 'roi_status', description = 'good or bad ROI')
+        plane_segmentation.add_column(name = 'neuron_type', description = 'excitatory or inhibitory')
+        plane_segmentation.add_column(name = 'fitness', description = '')
+        plane_segmentation.add_column(name = 'roi2surr_sig', description = '')
+        plane_segmentation.add_column(name = 'offsets_ch1_pix', description = '')
 
-dF_F.add_roi_response_series([
-    build_roi_series('firstSideTryAl',postmat,roi_region),
-    build_roi_series('firstSideTryAl_COM',postmat,roi_region),
-    build_roi_series('goToneAl',postmat,roi_region),
-    build_roi_series('rewardAl',postmat,roi_region),
-    build_roi_series('commitIncorrAl',postmat,roi_region),
-    build_roi_series('initToneAl',postmat,roi_region),
-    build_roi_series('stimAl_allTrs',postmat,roi_region),
-    build_roi_series('stimAl_noEarlyDec',postmat,roi_region),
-    build_roi_series('stimOffAl',postmat,roi_region)
-])
+        # start inserting ROI mask
+        tmp = np.empty(moremat['idx_components'].shape)
+        tmp.fill(np.nan)
+        neuron_type = tmp
+        neuron_type[np.where(moremat['badROIs01'] == 0)] = moremat['inhibitRois_pix']
+        roi2surr_sig = tmp
+        roi2surr_sig[np.where(moremat['badROIs01'] == 0)] = moremat['roi2surr_sig']
+        offsets_ch1_pix = tmp
+        offsets_ch1_pix[np.where(moremat['badROIs01'] == 0)] = moremat['offsets_ch1_pix']
 
-# -- Write NWB2.0 file
-if False:
-    save_path = os.path.join('data', 'nwb2.0')
-    save_file_name = nwbfile.session_id
-    with NWBHDF5IO(os.path.join(save_path, save_file_name), mode = 'w') as io:
-        io.write(nwbfile)
+        for idx, ival in enumerate(moremat['idx_components']):
+            plane_segmentation.add_roi(
+                roi_id = ival,
+                image_mask = moremat['mask'][:, :, idx],
+                roi_status = 'good' if moremat['badROIs01'][idx] == 0 else 'bad',
+                fitness = moremat['fitness'][idx],
+                neuron_type = 'inhibitory' if neuron_type[idx] == 1 else 'excitatory' if neuron_type[idx] == 0 else 'unknown',
+                roi2surr_sig = roi2surr_sig[idx],
+                offsets_ch1_pix = offsets_ch1_pix[idx]
+            )
 
-    with NWBHDF5IO(os.path.join(save_path, save_file_name), mode = 'r') as io:
-        nwbfile_in = io.read()
+        # create a ROI region table
+        roi_region = plane_segmentation.create_roi_table_region(
+            description = 'good roi region table',
+            region = (np.where(moremat['badROIs01'] == 0)[0]).tolist()
+        )
 
+        # create another processing module:  trial-segmentation
+        trial_seg_mod = nwbfile.create_processing_module('Trial-based',
+                                                         'Trial-segmented data based on different event markers')
+        dF_F = nwb_ophys.DfOverF(name = 'deconvolved dF-over-F')
+        trial_seg_mod.add_data_interface(dF_F)
 
+        # now build "RoiResponseSeries" by ingesting data
+        def build_roi_series(data_string_name, post_data, dyn_table):
+            data = post_data[data_string_name].traces.transpose([1, 0, 2])
+            roi_resp_series = nwb_ophys.RoiResponseSeries(
+                name = data_string_name,
+                data = data,
+                unit = '',
+                rois = dyn_table,
+                timestamps = post_data[data_string_name].time,
+                description = 'ROIs x time x trial'
+            )
+            return roi_resp_series
 
+        # ingest each trial-based dataset, time-lock to different event types
+        data_names = ['firstSideTryAl', 'firstSideTryAl_COM',
+                      'goToneAl', 'rewardAl', 'commitIncorrAl',
+                      'initToneAl', 'stimAl_allTrs',
+                      'stimAl_noEarlyDec', 'stimOffAl']
+        for data_name in data_names:
+            try:
+                dF_F.add_roi_response_series(build_roi_series(data_name, postmat, roi_region))
+            except Exception as e:
+                print(f'Error adding roi_response_series: {data_name} - ErrorMsg: {str(e)}')
 
+        # -- Write NWB 2.0 file
+        save_path = os.path.join('data', 'nwb2.0')
+        save_file_name = file_name
+        with NWBHDF5IO(os.path.join(save_path, save_file_name), mode = 'w') as io:
+            io.write(nwbfile)
 
-
+        break
+    break
 
