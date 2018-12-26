@@ -175,5 +175,3 @@ for mouse_dir in mouse_dirs:
         with NWBHDF5IO(os.path.join(save_path, save_file_name), mode = 'w') as io:
             io.write(nwbfile)
 
-        break
-    break
