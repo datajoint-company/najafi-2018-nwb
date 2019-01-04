@@ -132,12 +132,14 @@ for mouse_dir in mouse_dirs:
         alldata_frameTimes = postmat['alldata_frameTimes']  # timestamps of each trial for all trials
 
         # get trial start stop times
-        alldata_frameTimes = postmat['alldata_frameTimes']  # timestamps of each trial for all trials
-        start_time = [t[0] for t in alldata_frameTimes]
-        stop_time = [t[-1] for t in alldata_frameTimes]
-
-        # check good trial         trial_is_good = [(a == 1 or a == 0) for a in outcomes]
-        tags = [(a == 1 or a == 0) for a in outcomes] # make some random tags for testing TODO rmv
+        try:
+            alldata_frameTimes = postmat['alldata_frameTimes']  # timestamps of each trial for all trials
+            start_time = [t[0] for t in alldata_frameTimes]
+            stop_time = [t[-1] for t in alldata_frameTimes]
+        except:
+            # handling cases where some dataset does not have the 'alldata_frameTimes' fields
+            start_time = np.full(outcomes.shape, np.nan)
+            stop_time = np.full(outcomes.shape, np.nan)
 
         # - now insert each trial into trial table
         for k in np.arange(outcomes.size):
