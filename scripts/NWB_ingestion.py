@@ -46,7 +46,7 @@ for mouse_dir in mouse_dirs:
         # -- NWB file - a NWB2.0 file for each session
         session_start_time = datetime.strptime(sess_dir, datetime_format_yymmdd)
         session_start_time.astimezone(timezone)
-        session_id = file_name.split('-')[-1]  # assuming the last 6-digits is the session id
+        session_id = file_name.split('-')[-2] + file_name.split('-')[-1]  # assuming the last 12-digits is the session id
         nwbfile = NWBFile(
             session_description = file_name,
             identifier = mouse_dir + '_' + sess_dir + '_' + file_name,
@@ -71,22 +71,25 @@ for mouse_dir in mouse_dirs:
         print(f'NWB file created: {mouse_dir}; {sess_dir}; {session_id}')
 
         # -- imaging plane - the plane info ophys was performed on (again hard-coded here)
-        device = pynwb.device.Device('imaging_device_1')
+        device = pynwb.device.Device('img_device')
         nwbfile.add_device(device)
-        optical_channel = nwb_ophys.OpticalChannel('my_optchan', 'description', 500.)
+        optical_channel = nwb_ophys.OpticalChannel('Red', 'Red (ET670/50m)', 670.)
         imaging_plane = nwbfile.create_imaging_plane(
             name = 'img_pln',
             optical_channel = optical_channel,
             device = device,
-            description = 'imaging plane 123 ',
-            excitation_lambda = 123.0,
-            imaging_rate = 123.0,
-            indicator = 'GFP',
-            location = 'brain loc #1',
-            manifold = np.ones((5, 5, 3)),
-            conversion = 1.23,
-            unit = 'meter'
+            description = 'imaging plane',
+            excitation_lambda = 930.,
+            imaging_rate = 30.,
+            indicator = 'tdTomato',
+            location = 'left PPC',
+            manifold = np.ones((512, 512, 1)),
+            conversion = 1e-6,
+            unit = 'micrometer'
         )
+
+        # -- Epoch
+
 
         # -- Image segmentation processing module
         img_seg_mod = nwbfile.create_processing_module('Image-Segmentation',
@@ -171,7 +174,8 @@ for mouse_dir in mouse_dirs:
 
         # -- Write NWB 2.0 file
         save_path = os.path.join('data', 'nwb2.0')
-        save_file_name = file_name
+        save_file_name = f'{mouse_dir}_{file_name}.nwb'
         with NWBHDF5IO(os.path.join(save_path, save_file_name), mode = 'w') as io:
             io.write(nwbfile)
+            print(f'Write NWB 2.0 file: {save_file_name}')
 
