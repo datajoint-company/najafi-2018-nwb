@@ -89,29 +89,92 @@ for mouse_dir in mouse_dirs:
         )
 
         # -- Epoch
+        # define epoch table
+        nwbfile.add_trial_column(name = 'trial_type', description = 'high-rate, low-rate')
+        nwbfile.add_trial_column(name = 'trial_pulse_rate', description = 'ranged from 5-27Hz, 16Hz boundary for high/low rate')
+        nwbfile.add_trial_column(name = 'trial_response', description = 'correct, incorrect, no center lick, no go-tone lick')
+        nwbfile.add_trial_column(name = 'trial_is_good', description = 'good, bad')
 
+        nwbfile.add_trial_column(name = 'init_tone', description = '(in ms) time of initiation tone w.r.t the start of the trial (t=0)')
+        nwbfile.add_trial_column(name = 'stim_onset', description = '(in ms) time of stimulus onset w.r.t the start of the trial (t=0)')
+        nwbfile.add_trial_column(name = 'stim_offset', description = '(in ms) time of stimulus offset w.r.t the start of the trial (t=0)')
+        nwbfile.add_trial_column(name = 'go_tone', description = '(in ms) time of go tone w.r.t the start of the trial (t=0)')
+        nwbfile.add_trial_column(name = 'first_commit', description = '(in ms) time of first commit w.r.t the start of the trial (t=0)')
+        nwbfile.add_trial_column(name = 'second_commit', description = '(in ms) time of second commit w.r.t the start of the trial (t=0)')
+
+        # - read and condition data
+        outcomes = postmat['outcomes']  # 1: correct, 0: incorrect, nan: no trial, -3: no center lick to start stimulus, -1: no go-tone lick
+        outcomes[np.isnan(outcomes)] = -10  # replace nan with -10 to easily make outcome dict
+        trial_response_dict = {1: 'correct', 0: 'incorrect', -1: 'no go-tone lick (-1)',
+                               -4: 'no go-tone lick (-4)', -3: 'no center lick', -2: 'no first commit',
+                               -5: 'no second commit', -10: 'no trial'}
+        stimrate = postmat['stimrate']  # stim rate
+
+        timeInitTone = postmat['timeInitTone']  # init tone
+
+        # handling some timeInitTone elements being vectors instead of scalars (get [0] of that vector)
+        def get_0th(a):
+            return a if np.isscalar(a) else a[0]
+
+        init_tone = [get_0th(a) for a in timeInitTone]  # init tone
+
+        timeStimOnsetAll = postmat['timeStimOnsetAll']  # stim onset
+        timeSingleStimOffset = postmat['timeSingleStimOffset']  # stim offset
+        timeCommitCL_CR_Gotone = postmat['timeCommitCL_CR_Gotone']  # go tone
+        time1stSideTry = postmat['time1stSideTry']  # correct and incorrect 1st commit
+
+        timeReward = postmat['timeReward']
+        timeCommitIncorrResp = postmat['timeCommitIncorrResp']
+        # merge timeReward and timeCommitIncorrectResp to get an overall second commit times
+        second_commit_times = timeReward.copy()
+        second_commit_times[~np.isnan(timeCommitIncorrResp)] = timeCommitIncorrResp[~np.isnan(timeCommitIncorrResp)]
+
+        alldata_frameTimes = postmat['alldata_frameTimes']  # timestamps of each trial for all trials
+
+        # get trial start stop times
+        alldata_frameTimes = postmat['alldata_frameTimes']  # timestamps of each trial for all trials
+        start_time = [t[0] for t in alldata_frameTimes]
+        stop_time = [t[-1] for t in alldata_frameTimes]
+
+        # check good trial         trial_is_good = [(a == 1 or a == 0) for a in outcomes]
+        tags = [(a == 1 or a == 0) for a in outcomes] # make some random tags for testing TODO rmv
+
+        # - now insert each trial into trial table
+        for k in np.arange(outcomes.size):
+            nwbfile.add_trial(start_time=start_time[k],
+                                     stop_time=stop_time[k],
+                                     trial_type=('High-rate' if stimrate[k] >= 16 else 'Low-rate'),
+                                     trial_pulse_rate=stimrate[k],
+                                     trial_response=trial_response_dict[outcomes[k]],
+                                     trial_is_good=(outcomes[k] >= 0),
+                                     init_tone=init_tone[k],
+                                     stim_onset=timeStimOnsetAll[k],
+                                     stim_offset=timeSingleStimOffset[k],
+                                     go_tone=timeCommitCL_CR_Gotone[k],
+                                     first_commit=time1stSideTry[k],
+                                     second_commit=second_commit_times[k])
 
         # -- Image segmentation processing module
         img_seg_mod = nwbfile.create_processing_module('Image-Segmentation',
                                                        'Plane segmentation and ROI identification')
 
-        img_segmentation = nwb_ophys.ImageSegmentation(name = 'img_seg')
+        img_segmentation = nwb_ophys.ImageSegmentation(name='img_seg')
         img_seg_mod.add_data_interface(img_segmentation)
 
         plane_segmentation = nwb_ophys.PlaneSegmentation(
-            name = 'pln_seg',
-            description = 'description here',
-            imaging_plane = imaging_plane
+            name='pln_seg',
+            description='description here',
+            imaging_plane=imaging_plane
         )
         img_segmentation.add_plane_segmentation([plane_segmentation])
 
         # add more columns
-        plane_segmentation.add_column(name = 'roi_id', description = 'roi id')
-        plane_segmentation.add_column(name = 'roi_status', description = 'good or bad ROI')
-        plane_segmentation.add_column(name = 'neuron_type', description = 'excitatory or inhibitory')
-        plane_segmentation.add_column(name = 'fitness', description = '')
-        plane_segmentation.add_column(name = 'roi2surr_sig', description = '')
-        plane_segmentation.add_column(name = 'offsets_ch1_pix', description = '')
+        plane_segmentation.add_column(name='roi_id', description='roi id')
+        plane_segmentation.add_column(name='roi_status', description='good or bad ROI')
+        plane_segmentation.add_column(name='neuron_type', description='excitatory or inhibitory')
+        plane_segmentation.add_column(name='fitness', description='')
+        plane_segmentation.add_column(name='roi2surr_sig', description='')
+        plane_segmentation.add_column(name='offsets_ch1_pix', description='')
 
         # start inserting ROI mask
         tmp = np.empty(moremat['idx_components'].shape)
