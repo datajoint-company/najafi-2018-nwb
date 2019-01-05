@@ -129,8 +129,6 @@ for mouse_dir in mouse_dirs:
         second_commit_times = timeReward.copy()
         second_commit_times[~np.isnan(timeCommitIncorrResp)] = timeCommitIncorrResp[~np.isnan(timeCommitIncorrResp)]
 
-        alldata_frameTimes = postmat['alldata_frameTimes']  # timestamps of each trial for all trials
-
         # get trial start stop times
         try:
             alldata_frameTimes = postmat['alldata_frameTimes']  # timestamps of each trial for all trials
@@ -210,7 +208,6 @@ for mouse_dir in mouse_dirs:
                                                          'Trial-segmented data based on different event markers')
         dF_F = nwb_ophys.DfOverF(name = 'deconvolved dF-over-F')
         trial_seg_mod.add_data_interface(dF_F)
-
 
         # now build "RoiResponseSeries" by ingesting data
         def build_roi_series(data_string_name, post_data, dyn_table):
