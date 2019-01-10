@@ -14,7 +14,7 @@ from pynwb import ophys as nwb_ophys
 
 
 # ======== Read conversion config file ========
-config_file = os.path.join('.', 'conversion_config.json')
+# config_file = os.path.join('.', 'conversion_config.json')
 config_file = sys.argv[1]
 with open(config_file) as f:
     config = json.load(f)
@@ -36,18 +36,22 @@ for more_mat in more_mats:
 # -- Setup some metadata information
 datetime_format_yymmdd = '%y%m%d'
 timezone = pytz.timezone('US/Eastern')  # assuming the recording is done at NY, NY
-error_log_file = os.path.join(*config['error_log'])
 
 experimenter = config['general']['experimenter']
 institution = config['general']['institution']
 related_publications = config['general']['related_publications']
 
+# change dir to the data dir
+error_log_file = os.path.abspath(os.path.join(*config['error_log']))
+save_path = os.path.abspath(os.path.join(*config['output_dir']))
+os.chdir(os.path.dirname(os.path.abspath(os.path.join(*config['manifest']))))
+
 # ======== Start conversion ========
 for fnames in mat_files:
     moremat = sio.loadmat(os.path.join(*re.split('/', fnames[0])),
-                          struct_as_record = False, squeeze_me = True)
+                          struct_as_record=False, squeeze_me=True)
     postmat = sio.loadmat(os.path.join(*re.split('/', fnames[1])),
-                          struct_as_record = False, squeeze_me = True)
+                          struct_as_record=False, squeeze_me=True)
     # NWB 2.0
     # step 1: ingest metadata (hard-coded for now ...)
     file_name = re.sub('data/|more_|post_|.mat', '', fnames[0])
@@ -70,46 +74,45 @@ for fnames in mat_files:
 
     # -- subject
     nwbfile.subject = pynwb.file.Subject(
-        subject_id = mouse_dir,
-        age = '',
-        description = '',
-        genotype = '',
-        sex = '',
-        species = '',
-        weight = '')
-    print(f'NWB file created: {mouse_dir}; {sess_dir}; {session_id}')
+        subject_id=mouse_dir,
+        age='',
+        description='',
+        genotype='',
+        sex='',
+        species='',
+        weight='')
 
     # -- imaging plane - the plane info ophys was performed on (again hard-coded here)
     device = pynwb.device.Device('img_device')
     nwbfile.add_device(device)
     optical_channel = nwb_ophys.OpticalChannel('Green', 'Green (ET 525/50m)', 525.)
     imaging_plane = nwbfile.create_imaging_plane(
-        name = 'img_pln',
-        optical_channel = optical_channel,
-        device = device,
-        description = 'imaging plane',
-        excitation_lambda = 930.,
-        imaging_rate = 30.,
-        indicator = 'GCaMP6f',
-        location = 'left PPC',
-        manifold = np.ones((512, 512, 1)),
-        conversion = 1e-6,
-        unit = 'micrometer'
+        name='img_pln',
+        optical_channel=optical_channel,
+        device=device,
+        description='imaging plane',
+        excitation_lambda=930.,
+        imaging_rate=30.,
+        indicator='GCaMP6f',
+        location='left PPC',
+        manifold=np.ones((512, 512, 1)),
+        conversion=1e-6,
+        unit='micrometer'
     )
 
-    # -- Epoch
+    # ------  Epoch ------
     # define epoch table
-    nwbfile.add_trial_column(name = 'trial_type', description = 'high-rate, low-rate')
-    nwbfile.add_trial_column(name = 'trial_pulse_rate', description = 'ranged from 5-27Hz, 16Hz boundary for high/low rate')
-    nwbfile.add_trial_column(name = 'trial_response', description = 'correct, incorrect, no center lick, no go-tone lick')
-    nwbfile.add_trial_column(name = 'trial_is_good', description = 'good, bad')
+    nwbfile.add_trial_column(name='trial_type', description='high-rate, low-rate')
+    nwbfile.add_trial_column(name='trial_pulse_rate', description='ranged from 5-27Hz, 16Hz boundary for high/low rate')
+    nwbfile.add_trial_column(name='trial_response', description='correct, incorrect, no center lick, no go-tone lick')
+    nwbfile.add_trial_column(name='trial_is_good', description='good, bad')
 
-    nwbfile.add_trial_column(name = 'init_tone', description = '(ms) time of initiation tone w.r.t the start of the trial (t=0)')
-    nwbfile.add_trial_column(name = 'stim_onset', description = '(ms) time of stimulus onset w.r.t the start of the trial (t=0)')
-    nwbfile.add_trial_column(name = 'stim_offset', description = '(ms) time of stimulus offset w.r.t the start of the trial (t=0)')
-    nwbfile.add_trial_column(name = 'go_tone', description = '(ms) time of go tone w.r.t the start of the trial (t=0)')
-    nwbfile.add_trial_column(name = 'first_commit', description = '(ms) time of first commit w.r.t the start of the trial (t=0)')
-    nwbfile.add_trial_column(name = 'second_commit', description = '(ms) time of second commit w.r.t the start of the trial (t=0)')
+    nwbfile.add_trial_column(name='init_tone', description='(ms) time of initiation tone w.r.t the start of the trial (t=0)')
+    nwbfile.add_trial_column(name='stim_onset', description='(ms) time of stimulus onset w.r.t the start of the trial (t=0)')
+    nwbfile.add_trial_column(name='stim_offset', description='(ms) time of stimulus offset w.r.t the start of the trial (t=0)')
+    nwbfile.add_trial_column(name='go_tone', description='(ms) time of go tone w.r.t the start of the trial (t=0)')
+    nwbfile.add_trial_column(name='first_commit', description='(ms) time of first commit w.r.t the start of the trial (t=0)')
+    nwbfile.add_trial_column(name='second_commit', description='(ms) time of second commit w.r.t the start of the trial (t=0)')
 
     # - read and condition data
     outcomes = postmat['outcomes']  # 1: correct, 0: incorrect, nan: no trial, -3: no center lick to start stimulus, -1: no go-tone lick
@@ -131,7 +134,7 @@ for fnames in mat_files:
         alldata_frameTimes = postmat['alldata_frameTimes']  # timestamps of each trial for all trials
     except KeyError as e:
         with open(error_log_file, 'a') as error_log:
-            error_log.write(f'Error reading start/end time from postmat["alldata_frameTimes"] - Set to NaN\nErrorMsg: {str(e)}\n')
+            error_log.write(f'Error reading start/end time from postmat["alldata_frameTimes"] - Set to NaN\n\t\tErrorMsg: {str(e)}\n')
         # handling cases where some dataset does not have the 'alldata_frameTimes' fields
         start_time = np.full(outcomes.shape, np.nan)
         stop_time = np.full(outcomes.shape, np.nan)
@@ -154,7 +157,7 @@ for fnames in mat_files:
                           first_commit=postmat['time1stSideTry'][k],
                           second_commit=second_commit_times[k])
 
-    # -- Image segmentation processing module
+    # ------ Image Segmentation processing module ------
     img_seg_mod = nwbfile.create_processing_module('Image-Segmentation',
                                                    'Plane segmentation and ROI identification')
 
@@ -188,34 +191,34 @@ for fnames in mat_files:
     neuron_status_dict = {0: 'good', 1: 'bad'}
     for idx in range(moremat['idx_components'].size):
         plane_segmentation.add_roi(
-            roi_id = moremat['idx_components'][idx],
-            image_mask = moremat['mask'][:, :, idx],
-            roi_status = neuron_status_dict.get(moremat['badROIs01'][idx]),
-            fitness = moremat['fitness'][idx],
-            neuron_type = neuron_type_dict.get(neuron_type[idx], 'unknown'),
-            roi2surr_sig = roi2surr_sig[idx],
-            offsets_ch1_pix = offsets_ch1_pix[idx])
+            roi_id=moremat['idx_components'][idx],
+            image_mask=moremat['mask'][:, :, idx],
+            roi_status=neuron_status_dict.get(moremat['badROIs01'][idx]),
+            fitness=moremat['fitness'][idx],
+            neuron_type=neuron_type_dict.get(neuron_type[idx], 'unknown'),
+            roi2surr_sig=roi2surr_sig[idx],
+            offsets_ch1_pix=offsets_ch1_pix[idx])
 
     # create a ROI region table
     roi_region = plane_segmentation.create_roi_table_region(
-        description = 'good roi region table',
-        region = (np.where(moremat['badROIs01'] == 0)[0]).tolist())
+        description='good roi region table',
+        region=(np.where(moremat['badROIs01'] == 0)[0]).tolist())
 
-    # create another processing module:  trial-segmentation
+    # ------ Trial Segmentation processing module ------
     trial_seg_mod = nwbfile.create_processing_module('Trial-based',
                                                      'Trial-segmented data based on different event markers')
-    dF_F = nwb_ophys.DfOverF(name = 'deconvolved dF-over-F')
+    dF_F = nwb_ophys.DfOverF(name='deconvolved dF-over-F')
     trial_seg_mod.add_data_interface(dF_F)
 
     # now build "RoiResponseSeries" by ingesting data
     def build_roi_series(data_string_name, post_data, dyn_table):
         return nwb_ophys.RoiResponseSeries(
-            name = data_string_name,
-            data = post_data[data_string_name].traces.transpose([1, 0, 2]),
-            unit = '',
-            rois = dyn_table,
-            timestamps = post_data[data_string_name].time,
-            description = f'(ROIs x time x trial), aligned to event_id: {post_data[data_string_name].eventI}')
+            name=data_string_name,
+            data=post_data[data_string_name].traces.transpose([1, 0, 2]),
+            unit='',
+            rois=dyn_table,
+            timestamps=post_data[data_string_name].time,
+            description=f'(ROIs x time x trial), aligned to event_id: {post_data[data_string_name].eventI}')
 
 
     # ingest each trial-based dataset, time-lock to different event types
@@ -231,14 +234,27 @@ for fnames in mat_files:
     for data_name in data_names:
         try:
             dF_F.add_roi_response_series(build_roi_series(data_name, postmat, roi_region))
-        except KeyError as e:
+        except Exception as e:
             with open(error_log_file, 'a') as error_log:
-                error_log.write(f'Error adding roi_response_series: {data_name} - ErrorMsg: {str(e)}\n')
+                error_log.write(f'Error adding roi_response_series: {data_name}\n\t\tErrorMsg: {str(e)}\n')
+
+    # ------ Behavior processing module ------
+    behavior_mod = nwbfile.create_processing_module('Behavior',
+                                                     'Behavior data (e.g. wheel revolution, lick traces)')
+    behav_epoch = pynwb.behavior.BehavioralTimeSeries(name='Epoched behavioral data, time-locked to experimental event')
+    behavior_mod.add_data_interface(behav_epoch)
+
+    behavioral_names = ['firstSideTryAl_wheelRev', 'firstSideTryAl_lick']
+    for behav in behavioral_names:
+        behav_epoch.create_timeseries(
+            name=behav,
+            data=postmat[behav].traces,
+            timestamps=postmat[behav].time,
+            description=f'(time x trial), aligned to event_id: {postmat[behav].eventI}')
 
     # -- Write NWB 2.0 file
-    save_path = os.path.join('data', 'nwb2.0')
-    save_file_name = f'{mouse_dir}_{file_name}.nwb'
-    with NWBHDF5IO(os.path.join(save_path, save_file_name), mode = 'w') as io:
+    save_file_name = ''.join([re.sub('/', '_', file_name), '.nwb'])
+    with NWBHDF5IO(os.path.join(save_path, save_file_name), mode='w') as io:
         io.write(nwbfile)
         print(f'Write NWB 2.0 file: {save_file_name}')
 
