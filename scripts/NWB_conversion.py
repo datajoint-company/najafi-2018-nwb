@@ -20,7 +20,7 @@ with open(config_file) as f:
     config = json.load(f)
 
 # -- Read manifest file, get the list of `.mat` data
-with open(os.path.join(*config['manifest']), 'r') as f:
+with open(os.path.join(*re.split('/', config['manifest'])), 'r') as f:
     more_mats = [re.search('(?<=\s{2}).*(?=\.mat)', l).group() for l in f if re.search('(more_).*(\.mat)', l)]
     f.seek(0)
     post_mats = [re.search('(?<=\s{2}).*(?=\.mat)', l).group() for l in f if re.search('(post_).*(\.mat)', l)]
@@ -42,9 +42,12 @@ institution = config['general']['institution']
 related_publications = config['general']['related_publications']
 
 # change dir to the data dir
-error_log_file = os.path.abspath(os.path.join(*config['error_log']))
-save_path = os.path.abspath(os.path.join(*config['output_dir']))
-os.chdir(os.path.dirname(os.path.abspath(os.path.join(*config['manifest']))))
+error_log_file = os.path.abspath(os.path.join(*re.split('/', config['error_log'])))
+save_path = os.path.abspath(os.path.join(*re.split('/', config['output_dir'])))
+os.chdir(os.path.dirname(os.path.abspath(os.path.join(*re.split('/', config['manifest'])))))
+
+if not os.path.exists(save_path):
+    raise NotADirectoryError(f'Invalid output directory: {save_path}')
 
 # ======== Start conversion ========
 for fnames in mat_files:
@@ -133,7 +136,7 @@ for fnames in mat_files:
     try:
         alldata_frameTimes = postmat['alldata_frameTimes']  # timestamps of each trial for all trials
     except KeyError as e:
-        with open(error_log_file, 'a') as error_log:
+        with open(error_log_file, 'a+') as error_log:
             error_log.write(f'Error reading start/end time from postmat["alldata_frameTimes"] - Set to NaN\n\t\tErrorMsg: {str(e)}\n')
         # handling cases where some dataset does not have the 'alldata_frameTimes' fields
         start_time = np.full(outcomes.shape, np.nan)
@@ -235,7 +238,7 @@ for fnames in mat_files:
         try:
             dF_F.add_roi_response_series(build_roi_series(data_name, postmat, roi_region))
         except Exception as e:
-            with open(error_log_file, 'a') as error_log:
+            with open(error_log_file, 'a+') as error_log:
                 error_log.write(f'Error adding roi_response_series: {data_name}\n\t\tErrorMsg: {str(e)}\n')
 
     # ------ Behavior processing module ------
@@ -257,4 +260,5 @@ for fnames in mat_files:
     with NWBHDF5IO(os.path.join(save_path, save_file_name), mode='w') as io:
         io.write(nwbfile)
         print(f'Write NWB 2.0 file: {save_file_name}')
+
 
