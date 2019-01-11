@@ -10,6 +10,7 @@ The original data are available from Cold Spring Harbor Laboratory:  http://repo
 ## Conversion to NWB 2.0 file
 This repository will contain the Python 3+ code to convert the dataset into the NWB 2.0 format (See https://nwb.org)
 
+
 To start, download the dataset from http://repository.cshl.edu/36980/, follow the instruction to concatenate and extract data.
 The resulted data directory includes a **manifest.txt** file specifying all available data, and a data folder containing the *".mat"* files
 
