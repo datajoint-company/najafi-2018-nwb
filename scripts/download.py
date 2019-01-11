@@ -1,3 +1,6 @@
+"""
+Download original data for the Najafi-2018 dataset
+"""
 from tqdm import tqdm
 import requests
 import re
@@ -7,7 +10,7 @@ import os
 request = requests.get('http://repository.cshl.edu/36980/')
 links = [r.group('link') for r in (
     re.search(
-        r'"(?P<link>http(s)?://[\w./-]+dataSharing[\w./-]+)".*Download',  line)
+        r'"(?P<link>http(s)?://[\w./-]+FN_dataSharing.tgz-\w+)".*Download',  line)
     for line in request.text.split('\n')) if r]
 print('Download links:', *links, sep='\n')
 
@@ -27,6 +30,8 @@ for link in tqdm(links):
                 for data in tqdm(
                     response.iter_content(chunk_size=chunk_size), 
                     desc=filename +' (MiB)',
-                    total=total_length/chunk_size):
+                    total=(total_length+chunk_size-1)//chunk_size):
                     f.write(data)
-        os.rename(filename + '.download', filename)
+        if total_length == os.path.get_size(filename+'.download'):
+            os.rename(filename + '.download', filename)
+
