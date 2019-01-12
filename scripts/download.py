@@ -32,6 +32,6 @@ for link in tqdm(links):
                     desc=filename + ' (MiB)',
                     total=(total_length + chunk_size - 1) // chunk_size):
                     f.write(data)
-        if total_length == os.path.get_size(filename + '.download'):
+        if total_length == os.path.getsize(filename + '.download'):
             os.rename(filename + '.download', filename)
 
