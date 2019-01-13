@@ -14,14 +14,14 @@ links = [r.group('link') for r in (
     for line in request.text.split('\n')) if r]
 print('Download links:', *links, '\n', sep='\n')
 
-# download files from links
+# download files from the links
+chunk_size = 1 << 20  # 1 MiB
 for link in tqdm(links):
     filename = os.path.join('data',  link.split('/')[-1])
     if not os.path.isfile(filename):
         with open(filename + '.download', "wb") as f:
             response = requests.get(link, stream=True)
             total_length = int(response.headers.get('content-length'))
-            chunk_size = 1 << 20
             for data in tqdm(
                     response.iter_content(chunk_size=chunk_size), 
                     desc=filename + ' (MiB)',
