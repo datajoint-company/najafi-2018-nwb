@@ -40,4 +40,3 @@ python NWB_conversion conversion_config.json
 This repository will contain Jupyter Notebook demonstrating how to navigate and query the dataset. 
 
 See this [Jupyter Notebook](https://github.com/ttngu207/najafi-2018-nwb/blob/master/notebooks/NWB2.0_Tutorial.ipynb) for a tutorial on using [**PyNWB**](https://pynwb.readthedocs.io/en/latest/) API to access NWB 2.0 data, to process and plot some of the key figures presented in this study (https://doi.org/10.1101/354340). 
-
