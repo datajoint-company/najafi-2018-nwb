@@ -7,8 +7,9 @@ https://www.biorxiv.org/content/early/2018/10/10/354340
 
 The original data are available from Cold Spring Harbor Laboratory:  http://repository.cshl.edu/36980/
 
-## Conversion to NWB 2.0 file
-This repository will contain the Python 3+ code to convert the dataset into the NWB 2.0 format (See https://nwb.org)
+
+## Conversion to NWB 2.0
+This repository will contain the Python 3+ code to convert the dataset into the NWB 2.0 format (See https://neurodatawithoutborders.github.io/)
 
 To start, download the dataset from http://repository.cshl.edu/36980/, follow the instruction to concatenate and extract data.
 The resulted data directory includes a **manifest.txt** file specifying all available data, and a data folder containing the *".mat"* files
@@ -39,3 +40,4 @@ python NWB_conversion conversion_config.json
 This repository will contain Jupyter Notebook demonstrating how to navigate and query the dataset. 
 
 See this [Jupyter Notebook](https://github.com/ttngu207/najafi-2018-nwb/blob/master/notebooks/NWB2.0_Tutorial.ipynb) for a tutorial on using [**PyNWB**](https://pynwb.readthedocs.io/en/latest/) API to access NWB 2.0 data, to process and plot some of the key figures presented in this study (https://doi.org/10.1101/354340). 
+

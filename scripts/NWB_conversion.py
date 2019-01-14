@@ -255,10 +255,9 @@ for fnames in mat_files:
             timestamps=postmat[behav].time,
             description=f'(time x trial), aligned to event_id: {postmat[behav].eventI}')
 
-    # -- Write NWB 2.0 file
+    # ------ Write NWB 2.0 file ------
     save_file_name = ''.join([re.sub('/', '_', file_name), '.nwb'])
     with NWBHDF5IO(os.path.join(save_path, save_file_name), mode='w') as io:
         io.write(nwbfile)
         print(f'Write NWB 2.0 file: {save_file_name}')
-
 
