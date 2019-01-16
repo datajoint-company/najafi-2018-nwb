@@ -18,10 +18,9 @@ $ git clone https://github.com/vathes/najafi-2018-nwb.git
 $ cd najafi-2018-nwb
 ``` 
 
-The following script will download the raw data from CSHL (~70 TB) -- it may take several hours.
+## Download the original data 
 
-## Download the raw data 
-
+The following command will download the original data from CSHL (~70 TB) -- it may take several hours.
 ```console 
 $ mkdir data
 $ python3 scripts/download.py
@@ -56,7 +55,7 @@ An example content of the *.json* config file is as follow:
 The converted NWB 2.0 files will be saved in the `output_dir` directory specified in the *.json* file. Running the conversion script is as follow: 
 
 ```console
-python3 NWB_conversion conversion_config.json
+$ python3 NWB_conversion conversion_config.json
 ```
 
 # Showcase work with NWB:N files
