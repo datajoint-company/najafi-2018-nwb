@@ -1,0 +1,11 @@
+{
+	"manifest": "data/manifest-md5.txt",
+	"general": 
+		{
+			"experimenter" : "Farzaneh Najafi",
+			"institution" : "Cold Spring Harbor Laboratory",
+			"related_publications" : "https://doi.org/10.1101/354340"
+		},
+	"error_log" : "data/conversion_error_log.txt",
+	"output_dir" : "data/NWB 2.0"
+}
