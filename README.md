@@ -16,7 +16,6 @@ In the terminal window, git clone
 ```console
 $ git clone https://github.com/vathes/najafi-2018-nwb.git
 $ cd najafi-2018-nwb
-$ mkdir data
 ``` 
 
 The following script will download the raw data from CSHL (~70 TB) -- it may take several hours.
@@ -24,6 +23,7 @@ The following script will download the raw data from CSHL (~70 TB) -- it may tak
 ## Download the raw data 
 
 ```console 
+$ mkdir data
 $ python3 scripts/download.py
 ```
 
@@ -34,9 +34,9 @@ The following command will convert the dataset into the NWB 2.0 format (See http
 $ python3 scripts/NWB_convert.py
 ```
 
-The resulted data directory includes a **manifest.txt** file specifying all available data, and a data folder containing the *".mat"* files
+The resulted data directory includes a `manifest.txt` file specifying all available data, and a data folder containing the `.mat` files.
 
-The conversion to NWB 2.0 format is done via the [**NWB_conversion.py**](https://github.com/ttngu207/najafi-2018-nwb/blob/master/scripts/NWB_conversion.py) script. This script takes one argument, a *.json* config file, specifying the *manifest* file, output directory, and some metadata. 
+The conversion to NWB 2.0 format is done via the [`NWB_conversion.py`](https://github.com/ttngu207/najafi-2018-nwb/blob/master/scripts/NWB_conversion.py) script. This script takes one argument, a `.json` config file, specifying the *manifest* file, output directory, and some metadata. 
 
 An example content of the *.json* config file is as follow: 
 ```json
@@ -53,7 +53,8 @@ An example content of the *.json* config file is as follow:
 }
 ```
 
-The converted NWB 2.0 files will be saved in the *output_dir* directory specified in the *.json* file. Running the conversion script is as follow: 
+The converted NWB 2.0 files will be saved in the `output_dir` directory specified in the *.json* file. Running the conversion script is as follow: 
+
 ```console
 python3 NWB_conversion conversion_config.json
 ```
