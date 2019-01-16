@@ -20,11 +20,37 @@ $ cd najafi-2018-nwb
 
 ## Download the original data 
 
-The following command will download the original data from CSHL (~70 TB) -- it may take several hours.
+The following command will download the original data from CSHL (~70 TB).
 ```console 
 $ mkdir data
 $ python3 scripts/download.py
 ```
+This may take several hours.  If the download is interrupted, simply re-run `download.py` and it will pick up where it left.
+
+Verify that all 18 files have downloaded.
+```console
+$ ls data
+FN_dataSharing.tgz-aa	FN_dataSharing.tgz-af	FN_dataSharing.tgz-ak	FN_dataSharing.tgz-ap
+FN_dataSharing.tgz-ab	FN_dataSharing.tgz-ag	FN_dataSharing.tgz-al	FN_dataSharing.tgz-aq
+FN_dataSharing.tgz-ac	FN_dataSharing.tgz-ah	FN_dataSharing.tgz-am	FN_dataSharing.tgz-ar
+FN_dataSharing.tgz-ad	FN_dataSharing.tgz-ai	FN_dataSharing.tgz-an
+FN_dataSharing.tgz-ae	FN_dataSharing.tgz-aj	FN_dataSharing.tgz-ao
+```
+
+Now unpack the tar files:
+
+```console
+$ cat data/FN_dataSharing.tgz-a* | tar -C data -xzf -
+```
+
+Verify that the data have unpacked:
+
+```console
+$ ls data/FN_dataSharing
+bag-info.txt		data			manifest-sha256.txt	tagmanifest-sha256.txt
+bagit.txt		manifest-md5.txt	tagmanifest-md5.txt
+```
+
 
 ## Conversion to NWB 2.0
 The following command will convert the dataset into the NWB 2.0 format (See https://neurodatawithoutborders.github.io/)
