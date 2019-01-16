@@ -73,34 +73,33 @@ for mouse_dir in mouse_dirs:
         # -- imaging plane - the plane info ophys was performed on (again hard-coded here)
         device = pynwb.device.Device('img_device')
         nwbfile.add_device(device)
-        optical_channel = nwb_ophys.OpticalChannel('Red', 'Red (ET670/50m)', 670.)
         imaging_plane = nwbfile.create_imaging_plane(
-            name = 'img_pln',
-            optical_channel = optical_channel,
-            device = device,
-            description = 'imaging plane',
-            excitation_lambda = 930.,
-            imaging_rate = 30.,
-            indicator = 'tdTomato',
-            location = 'left PPC',
-            manifold = np.ones((512, 512, 1)),
-            conversion = 1e-6,
-            unit = 'micrometer'
-        )
+            name='img_pln',
+            optical_channel=nwb_ophys.OpticalChannel('Red', 'Red (ET670/50m)', 670.),
+            device=device,
+            description='imaging plane',
+            excitation_lambda=930.,
+            imaging_rate=30.,
+            indicator='tdTomato',
+            location='left PPC',
+            manifold=np.ones((512, 512, 1)),
+            conversion=1e-6,
+            unit='micrometer')
 
         # -- Epoch
         # define epoch table
-        nwbfile.add_trial_column(name = 'trial_type', description = 'high-rate, low-rate')
-        nwbfile.add_trial_column(name = 'trial_pulse_rate', description = 'ranged from 5-27Hz, 16Hz boundary for high/low rate')
-        nwbfile.add_trial_column(name = 'trial_response', description = 'correct, incorrect, no center lick, no go-tone lick')
-        nwbfile.add_trial_column(name = 'trial_is_good', description = 'good, bad')
-
-        nwbfile.add_trial_column(name = 'init_tone', description = '(ms) time of initiation tone w.r.t the start of the trial (t=0)')
-        nwbfile.add_trial_column(name = 'stim_onset', description = '(ms) time of stimulus onset w.r.t the start of the trial (t=0)')
-        nwbfile.add_trial_column(name = 'stim_offset', description = '(ms) time of stimulus offset w.r.t the start of the trial (t=0)')
-        nwbfile.add_trial_column(name = 'go_tone', description = '(ms) time of go tone w.r.t the start of the trial (t=0)')
-        nwbfile.add_trial_column(name = 'first_commit', description = '(ms) time of first commit w.r.t the start of the trial (t=0)')
-        nwbfile.add_trial_column(name = 'second_commit', description = '(ms) time of second commit w.r.t the start of the trial (t=0)')
+        for column, decription in (
+                ('trial_type', 'high-rate, low-rate'),
+                ('trial_pulse_rate', 'ranged from 5-27Hz, 16Hz boundary for high/low rate'),
+                ('trial_response', 'correct, incorrect, no center lick, no go-tone lick'),
+                ('trial_is_good', 'good, bad'),
+                ('init_tone', '(ms) time of initiation tone w.r.t the start of the trial (t=0)'),
+                ('stim_onset', '(ms) time of stimulus onset w.r.t the start of the trial (t=0)'),
+                ('stim_offset', '(ms) time of stimulus offset w.r.t the start of the trial (t=0)'),
+                ('go_tone', '(ms) time of go tone w.r.t the start of the trial (t=0)'),
+                ('first_commit', '(ms) time of first commit w.r.t the start of the trial (t=0)'),
+                ('second_commit', '(ms) time of second commit w.r.t the start of the trial (t=0)')):
+            nwbfile.add_trial_column(name=name, description=description)
 
         # - read and condition data
         outcomes = postmat['outcomes']  # 1: correct, 0: incorrect, nan: no trial, -3: no center lick to start stimulus, -1: no go-tone lick
@@ -109,7 +108,7 @@ for mouse_dir in mouse_dirs:
                                -4: 'no go-tone lick (-4)', -3: 'no center lick', -2: 'no first commit',
                                -5: 'no second commit', -10: 'no trial'}
 
-        # get timeInitTone and handle some timeInitTone elements being vectors instead of scalars (get [0] of that vector)
+        # get timeInitTone and handle some timeInitTone elements being vectors instead of scalars (get [0] if a vector)
         init_tone = [a if np.isscalar(a) else a[0] for a in postmat['timeInitTone']]
         # merge timeReward and timeCommitIncorrectResp to get an overall second commit times
         timeCommitIncorrResp = postmat['timeCommitIncorrResp']
@@ -121,7 +120,7 @@ for mouse_dir in mouse_dirs:
         try:
             alldata_frameTimes = postmat['alldata_frameTimes']  # timestamps of each trial for all trials
         except KeyError:
-            # handling cases where some dataset does not have the 'alldata_frameTimes' fields
+            # when no 'alldata_frameTimes', set times to nans
             start_time = np.full(outcomes.shape, np.nan)
             stop_time = np.full(outcomes.shape, np.nan)
         else:
