@@ -7,7 +7,6 @@ https://www.biorxiv.org/content/early/2018/10/10/354340
 
 The original data are available from Cold Spring Harbor Laboratory:  http://repository.cshl.edu/36980/
 
-<<<<<<< HEAD
 # Converting the original data
 The data download instructions are for a Unix-family OS such as Linux or Mac OS with Python 3.7+ on the system path as `python3`. 
 
