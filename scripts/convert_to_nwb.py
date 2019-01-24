@@ -131,7 +131,7 @@ def main(config_file=sys.argv[1]):
                                -3: 'no center lick',
                                -2: 'no first commit',
                                -5: 'no second commit',
-                               -10: 'no trial'}
+                               -10: 'no decision'}
 
         # get timeInitTone and handle some timeInitTone elements being vectors instead of scalars (get [0] of that vector)
         init_tone = [a if np.isscalar(a) else a[0] for a in postmat['timeInitTone']]
