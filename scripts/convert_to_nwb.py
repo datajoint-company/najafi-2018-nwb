@@ -59,7 +59,7 @@ def main(config_file=sys.argv[1]):
         # NWB 2.0
         # step 1: ingest metadata (hard-coded for now ...)
         file_name = re.sub('data/|more_|post_|.mat', '', more_fname)
-        mouse_dir = re.split('/', file_name)[0]
+        mouse_dir, session_dir = file_name.split('/')[:2]
         sess_dir = re.split('/', file_name)[1]
 
         # -- NWB file - a NWB2.0 file for each session
