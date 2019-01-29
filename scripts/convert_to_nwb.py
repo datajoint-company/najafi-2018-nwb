@@ -13,7 +13,7 @@ import scipy.io as sio
 import pynwb
 from pynwb import NWBFile, NWBHDF5IO, ophys as nwb_ophys
 from collections import defaultdict
-from tqdm import tqdm
+import tqdm
 
 # Read configuration
 try:
@@ -36,7 +36,7 @@ with open(Path(config['manifest']), 'r') as f:
 
 # save an NWB file for each session
 save_path = os.path.abspath(Path(config['output_dir']))
-for session, file_pair in mat_file_pairs.items():
+for session, file_pair in tqdm.tqdm(mat_file_pairs.items()):
     moremat, postmat = (sio.loadmat(file_pair[x], struct_as_record=False, squeeze_me=True)
                         for x in ('more', 'post'))
     mouse_folder, session_folder = file_pair['more'].parts[-3:-1]
@@ -178,7 +178,7 @@ for session, file_pair in mat_file_pairs.items():
 
     # ------ Trial Segmentation processing module ------
     trial_seg_mod = nwbfile.create_processing_module(
-        'Trial-based', 'Trial-segmented data based on different event markers')
+        'Trial-based-Segmentation', 'Trial-segmented data based on different event markers')
     dF_F = nwb_ophys.DfOverF(name='deconvolved dF-over-F')
     trial_seg_mod.add_data_interface(dF_F)
 
@@ -195,7 +195,7 @@ for session, file_pair in mat_file_pairs.items():
                     timestamps=postmat[data_name].time,
                     description=f'(ROIs x time x trial), aligned to event_id: {postmat[data_name].eventI}'))
         except Exception as e:
-             print(f'Error adding roi_response_series: {data_name}\n\t\tErrorMsg: {str(e)}\n', file=sys.stderr)
+            print(f'Error adding roi_response_series: {data_name}\n\t\tErrorMsg: {str(e)}\n', file=sys.stderr)
 
     # ------ Behavior processing module ------
     behavior_mod = nwbfile.create_processing_module(
@@ -211,5 +211,5 @@ for session, file_pair in mat_file_pairs.items():
             timestamps=postmat[behavior].time,
             description=f'(time x trial), aligned to event_id: {postmat[behavior].eventI}')
 
-    with NWBHDF5IO(os.path.join(save_path, session + '.nwb'), mode='w') as io:
+    with NWBHDF5IO(os.path.join(save_path, ''.join([mouse_folder, '_', session, '.nwb'])), mode='w') as io:
         io.write(nwbfile)
