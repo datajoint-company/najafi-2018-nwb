@@ -49,19 +49,23 @@ Verify that the data have unpacked:
 $ ls data/FN_dataSharing
 bag-info.txt		data			manifest-sha256.txt	tagmanifest-sha256.txt
 bagit.txt		manifest-md5.txt	tagmanifest-md5.txt
+
+$ ls data/FN_dataSharing/data
+metaData  metaData~  mouse1_fni16  mouse2_fni17  mouse3_fni18  mouse4_fni19
 ```
+
+The `FN_dataSharing` data directory includes a `manifest.txt` file specifying all available data, and a data folder containing the `.mat` files.
 
 
 ## Conversion to NWB 2.0
 The following command will convert the dataset into the NWB 2.0 format (See https://neurodatawithoutborders.github.io/)
 
 ```console
-$ python3 scripts/NWB_convert.py
+$ mkdir data/nwb
+$ python3 scripts/convert_to_nwb.py
 ```
 
-The resulted data directory includes a `manifest.txt` file specifying all available data, and a data folder containing the `.mat` files.
-
-The conversion to NWB 2.0 format is done via the [`NWB_conversion.py`](https://github.com/ttngu207/najafi-2018-nwb/blob/master/scripts/NWB_conversion.py) script. This script takes one argument, a `.json` config file, specifying the *manifest* file, output directory, and some metadata. 
+The `convert_to_nwb` uses the configuration file `conversion_config.json` to specifying the *manifest* file, the output file, and general data about the experiments.
 
 An example content of the *.json* config file is as follow: 
 ```json
@@ -73,16 +77,11 @@ An example content of the *.json* config file is as follow:
 			"institution" : "Cold Spring Harbor Laboratory",
 			"related_publications" : "https://doi.org/10.1101/354340"
 		},
-	"error_log" : "data/conversion_error_log.txt",
-	"output_dir" : "data/NWB 2.0"
+	"output_dir" : "data/nwb"
 }
 ```
 
-The converted NWB 2.0 files will be saved in the `output_dir` directory specified in the *.json* file. Running the conversion script is as follow: 
-
-```console
-$ python3 NWB_conversion conversion_config.json
-```
+The converted NWB files will be saved in the `output_dir` directory. 
 
 # Showcase work with NWB:N files
 This repository will contain Jupyter Notebook demonstrating how to navigate and query the dataset. 
