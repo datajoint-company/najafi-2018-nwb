@@ -211,5 +211,5 @@ for session, file_pair in tqdm.tqdm(mat_file_pairs.items()):
             timestamps=postmat[behavior].time,
             description=f'(time x trial), aligned to event_id: {postmat[behavior].eventI}')
 
-    with NWBHDF5IO(os.path.join(save_path, ''.join([mouse_folder, '_', session, '.nwb'])), mode='w') as io:
+    with NWBHDF5IO(os.path.join(save_path, mouse_folder +  '_' + session + '.nwb'), mode='w') as io:
         io.write(nwbfile)

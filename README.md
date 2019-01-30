@@ -1,9 +1,9 @@
 # najafi-2018-nwb
 
 This project presents the data accompanying the paper
-> Najafi, Farzaneh, Gamaleldin F. Elsayed, Eftychios Pnevmatikakis, John Cunningham, and Anne K. Churchland. "Inhibitory and excitatory populations in parietal cortex are equally selective for decision outcome in both novices and experts." bioRxiv (2018): 354340.
+> Farzaneh Najafi, Gamaleldin F Elsayed, Robin Cao, Eftychios Pnevmatikakis, Peter E Latham, John Cunningham, Anne K Churchland. "Excitatory and inhibitory subnetworks are equally selective during decision-making and emerge simultaneously during learning" bioRxiv (2018): 354340.
 
-https://www.biorxiv.org/content/early/2018/10/10/354340
+https://doi.org/10.1101/354340
 
 The original data are available from Cold Spring Harbor Laboratory:  http://repository.cshl.edu/36980/
 
@@ -65,7 +65,7 @@ $ mkdir data/nwb
 $ python3 scripts/convert_to_nwb.py
 ```
 
-The `convert_to_nwb` uses the configuration file `conversion_config.json` to specifying the *manifest* file, the output file, and general data about the experiments.
+The `convert_to_nwb` uses the configuration file `conversion_config.json` to specify the *manifest* file, the output file, and general data about the experiments.
 
 An example content of the *.json* config file is as follow: 
 ```json
@@ -86,4 +86,4 @@ The converted NWB files will be saved in the `output_dir` directory.
 # Showcase work with NWB:N files
 This repository will contain Jupyter Notebook demonstrating how to navigate and query the dataset. 
 
-See this [Jupyter Notebook](https://github.com/ttngu207/najafi-2018-nwb/blob/master/notebooks/NWB2.0_Tutorial.ipynb) for a tutorial on using [**PyNWB**](https://pynwb.readthedocs.io/en/latest/) API to access NWB 2.0 data, to process and plot some of the key figures presented in this study (https://doi.org/10.1101/354340). 
+See this [Jupyter Notebook](https://github.com/ttngu207/najafi-2018-nwb/blob/master/notebooks/Najafi-2018_example.ipynb) for a tutorial on using [**PyNWB**](https://pynwb.readthedocs.io/en/latest/) API to access NWB 2.0 data, to process and plot some of the figures presented in this study (https://doi.org/10.1101/354340). 
