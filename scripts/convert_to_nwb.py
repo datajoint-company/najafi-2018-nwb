@@ -64,7 +64,6 @@ for session, file_pair in tqdm.tqdm(mat_file_pairs.items()):
         imaging_rate=30.,
         indicator='GCaMP6f',
         location='left PPC',
-        manifold=np.ones((512, 512, 1)),
         conversion=1e-6,
         unit='micrometer')
 
@@ -179,21 +178,22 @@ for session, file_pair in tqdm.tqdm(mat_file_pairs.items()):
     # ------ Trial Segmentation processing module ------
     trial_seg_mod = nwbfile.create_processing_module(
         'Trial-based-Segmentation', 'Trial-segmented data based on different event markers')
-    dF_F = nwb_ophys.DfOverF(name='deconvolved dF-over-F')
-    trial_seg_mod.add_data_interface(dF_F)
 
     # ingest each trial-based dataset, time-lock to different event types
     for data_name in ('firstSideTryAl', 'firstSideTryAl_COM', 'goToneAl', 'rewardAl', 'commitIncorrAl',
                       'initToneAl', 'stimAl_allTrs', 'stimAl_noEarlyDec', 'stimOffAl'):
         try:
-            dF_F.add_roi_response_series(
-                nwb_ophys.RoiResponseSeries(
-                    name=data_name,
-                    data=postmat[data_name].traces.transpose([1, 0, 2]),
-                    unit='',
-                    rois=roi_region,
-                    timestamps=postmat[data_name].time,
-                    description=f'(ROIs x time x trial), aligned to event_id: {postmat[data_name].eventI}'))
+            dF_F = nwb_ophys.DfOverF(name = f'dFoF_{data_name}')
+            for tr_idx, d in enumerate(postmat[data_name].traces.transpose([2, 1, 0])):
+                dF_F.add_roi_response_series(
+                    nwb_ophys.RoiResponseSeries(
+                        name=f'Trial_{tr_idx:02d}',
+                        data=d,
+                        unit='',
+                        rois=roi_region,
+                        timestamps=postmat[data_name].time,
+                        description=f'(ROIs x time), aligned to event_id: {postmat[data_name].eventI}'))
+            trial_seg_mod.add_data_interface(dF_F)
         except Exception as e:
             print(f'Error adding roi_response_series: {data_name}\n\t\tErrorMsg: {str(e)}\n', file=sys.stderr)
 
@@ -201,7 +201,7 @@ for session, file_pair in tqdm.tqdm(mat_file_pairs.items()):
     behavior_mod = nwbfile.create_processing_module(
         'Behavior', 'Behavior data (e.g. wheel revolution, lick traces)')
     behavior_epoch = pynwb.behavior.BehavioralTimeSeries(
-        name='Epoched behavioral data, time-locked to experimental event')
+        name='Epoched_behavioral_series')
     behavior_mod.add_data_interface(behavior_epoch)
 
     for behavior in ['firstSideTryAl_wheelRev', 'firstSideTryAl_lick']:
@@ -211,5 +211,6 @@ for session, file_pair in tqdm.tqdm(mat_file_pairs.items()):
             timestamps=postmat[behavior].time,
             description=f'(time x trial), aligned to event_id: {postmat[behavior].eventI}')
 
-    with NWBHDF5IO(os.path.join(save_path, mouse_folder +  '_' + session + '.nwb'), mode='w') as io:
+    with NWBHDF5IO(os.path.join(save_path, mouse_folder + '_' + session + '.nwb'), mode='w') as io:
         io.write(nwbfile)
+
