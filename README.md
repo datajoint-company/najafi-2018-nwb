@@ -87,3 +87,6 @@ The converted NWB files will be saved in the `output_dir` directory.
 This repository will contain Jupyter Notebook demonstrating how to navigate and query the dataset. 
 
 See this [Jupyter Notebook](https://github.com/ttngu207/najafi-2018-nwb/blob/master/notebooks/Najafi-2018_example.ipynb) for a tutorial on using [**PyNWB**](https://pynwb.readthedocs.io/en/latest/) API to access NWB 2.0 data, to process and plot some of the figures presented in this study (https://doi.org/10.1101/354340). 
+
+Similarly, see this MATLAB [Live Editor script](https://github.com/ttngu207/najafi-2018-nwb/blob/master/notebooks/najafi_examples_with_matnwb.mlx) for demonstrations of working with NWB 2.0 files using MATLAB.
+
