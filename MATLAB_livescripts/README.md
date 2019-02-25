@@ -12,9 +12,8 @@ This project demonstrates the use of MATLAB and MATLAB Live Script in lastest Ne
 
 Data are first downloaded and converted to NWB 2.0 format, using Python scripts, see description below.
 
-The [Live Script](https://github.com/ttngu207/najafi-2018-nwb/blob/master/livescripts/najafi_examples_with_matnwb.mlx) provides examples of data querying, conditioning and visualization, with several figures from the paper reporduced (see [pdf](https://github.com/ttngu207/najafi-2018-nwb/blob/master/livescripts/najafi_examples_with_matnwb.pdf)). 
+The [Live Script](https://github.com/ttngu207/najafi-2018-nwb/blob/master/livescripts/najafi_examples_with_matnwb.mlx) provides examples of data querying, conditioning and visualization, with several figures from the paper reproduced (see [pdf](https://github.com/ttngu207/najafi-2018-nwb/blob/master/livescripts/najafi_examples_with_matnwb.pdf)). 
 
-The demonstration includes querying, conditioning and visualization of neuro-data for a single session, as well as for whole study population. To provide use case example, several figures from the paper will be reproduced.
 
 # Converting the original data
 The data download instructions are for a Unix-family OS such as Linux or Mac OS with Python 3.7+ on the system path as `python3`. 
