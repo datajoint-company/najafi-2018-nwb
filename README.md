@@ -77,7 +77,7 @@ An example content of the *.json* config file is as follow:
 			"institution" : "Cold Spring Harbor Laboratory",
 			"related_publications" : "https://doi.org/10.1101/354340"
 		},
-	"output_dir" : "data/nwb"
+	"output_dir" : "data/FN_dataSharing/nwb"
 }
 ```
 
