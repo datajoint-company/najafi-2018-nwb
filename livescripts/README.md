@@ -7,6 +7,15 @@ https://doi.org/10.1101/354340
 
 The original data are available from Cold Spring Harbor Laboratory:  http://repository.cshl.edu/36980/
 
+# MATLAB Live Script
+This project demonstrates the use of MATLAB and MATLAB Live Script in lastest Neuroscience studies. Specifically, the project provides guidance and examples for working with neurodata in the [Neurodata Without Border](https://neurodatawithoutborders.github.io) format (NWB 2.0)
+
+Data are first downloaded and converted to NWB 2.0 format, using Python scripts, see description below.
+
+The [Live Script](https://github.com/ttngu207/najafi-2018-nwb/blob/master/livescripts/najafi_examples_with_matnwb.mlx) provides examples of data querying, conditioning and visualization, with several figures from the paper reporduced (see [pdf](https://github.com/ttngu207/najafi-2018-nwb/blob/master/livescripts/najafi_examples_with_matnwb.pdf)). 
+
+The demonstration includes querying, conditioning and visualization of neuro-data for a single session, as well as for whole study population. To provide use case example, several figures from the paper will be reproduced.
+
 # Converting the original data
 The data download instructions are for a Unix-family OS such as Linux or Mac OS with Python 3.7+ on the system path as `python3`. 
 
@@ -82,9 +91,4 @@ An example content of the *.json* config file is as follow:
 ```
 
 The converted NWB files will be saved in the `output_dir` directory. 
-
-# Showcase work with NWB:N files
-This repository will contain Jupyter Notebook demonstrating how to navigate and query the dataset. 
-
-See this [Jupyter Notebook](https://github.com/ttngu207/najafi-2018-nwb/blob/master/notebooks/Najafi-2018_example.ipynb) for a tutorial on using [**PyNWB**](https://pynwb.readthedocs.io/en/latest/) API to access NWB 2.0 data, to process and plot some of the figures presented in this study (https://doi.org/10.1101/354340). 
 
