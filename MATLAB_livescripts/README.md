@@ -12,7 +12,7 @@ This project demonstrates the use of MATLAB and MATLAB Live Script in lastest Ne
 
 Data are first downloaded and converted to NWB 2.0 format, using Python scripts, see description below.
 
-The [Live Script](https://github.com/ttngu207/najafi-2018-nwb/blob/master/livescripts/najafi_examples_with_matnwb.mlx) provides examples of data querying, conditioning and visualization, with several figures from the paper reproduced (see [pdf](https://github.com/ttngu207/najafi-2018-nwb/blob/master/livescripts/najafi_examples_with_matnwb.pdf)). 
+The [Live Script](https://github.com/ttngu207/najafi-2018-nwb/blob/master/MATLAB_livescripts/najafi_examples_with_matnwb.mlx) provides examples of data querying, conditioning and visualization, with several figures from the paper reproduced (see [pdf](https://github.com/ttngu207/najafi-2018-nwb/blob/master/MATLAB_livescripts/najafi_examples_with_matnwb.pdf)). 
 
 
 # Converting the original data
