@@ -20,7 +20,7 @@ $ cd najafi-2018-nwb
 
 ## Download the original data 
 
-The following command will download the original data from CSHL (~70 TB).
+The following command will download the original data from CSHL (~70 GB).
 ```console 
 $ mkdir data
 $ python3 scripts/download.py
