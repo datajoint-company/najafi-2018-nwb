@@ -188,7 +188,7 @@ for session, file_pair in tqdm.tqdm(mat_file_pairs.items()):
                 dF_F.add_roi_response_series(
                     nwb_ophys.RoiResponseSeries(
                         name=f'Trial_{tr_idx:02d}',
-                        data=d,
+                        data=d.T,
                         unit='',
                         rois=roi_region,
                         timestamps=postmat[data_name].time,
