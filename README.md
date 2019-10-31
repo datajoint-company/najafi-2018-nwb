@@ -61,7 +61,7 @@ The `FN_dataSharing` data directory includes a `manifest.txt` file specifying al
 The following command will convert the dataset into the NWB 2.0 format (See https://neurodatawithoutborders.github.io/)
 
 ```console
-$ mkdir data/nwb
+$ mkdir data/FN_dataSharing/nwb
 $ python3 scripts/convert_to_nwb.py
 ```
 
