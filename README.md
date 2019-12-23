@@ -61,7 +61,7 @@ The `FN_dataSharing` data directory includes a `manifest.txt` file specifying al
 The following command will convert the dataset into the NWB 2.0 format (See https://neurodatawithoutborders.github.io/)
 
 ```console
-$ mkdir data/nwb
+$ mkdir data/FN_dataSharing/nwb
 $ python3 scripts/convert_to_nwb.py
 ```
 
@@ -77,7 +77,7 @@ An example content of the *.json* config file is as follow:
 			"institution" : "Cold Spring Harbor Laboratory",
 			"related_publications" : "https://doi.org/10.1101/354340"
 		},
-	"output_dir" : "data/nwb"
+	"output_dir" : "data/FN_dataSharing/nwb"
 }
 ```
 
@@ -87,6 +87,4 @@ The converted NWB files will be saved in the `output_dir` directory.
 This repository will contain Jupyter Notebook demonstrating how to navigate and query the dataset. 
 
 See this [Jupyter Notebook](https://github.com/ttngu207/najafi-2018-nwb/blob/master/notebooks/Najafi-2018_example.ipynb) for a tutorial on using [**PyNWB**](https://pynwb.readthedocs.io/en/latest/) API to access NWB 2.0 data, to process and plot some of the figures presented in this study (https://doi.org/10.1101/354340). 
-
-Similarly, see this MATLAB [Live script](https://github.com/ttngu207/najafi-2018-nwb/blob/master/notebooks/najafi_examples_with_matnwb.pdf) (source script can be found [here](https://github.com/ttngu207/najafi-2018-nwb/blob/master/notebooks/najafi_examples_with_matnwb.mlx)) for demonstrations of working with NWB 2.0 files using MATLAB.
 
