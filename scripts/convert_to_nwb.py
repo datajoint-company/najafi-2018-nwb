@@ -36,7 +36,8 @@ with open(Path(config['manifest']), 'r') as f:
 
 # save an NWB file for each session
 save_path = os.path.abspath(Path(config['output_dir']))
-for session, file_pair in tqdm.tqdm(mat_file_pairs.items()):
+mat_file_pairs_=[(list(mat_file_pairs.keys())[0],list(mat_file_pairs.values())[0])]
+for session, file_pair in tqdm.tqdm(mat_file_pairs_):
     moremat, postmat = (sio.loadmat(file_pair[x], struct_as_record=False, squeeze_me=True)
                         for x in ('more', 'post'))
     mouse_folder, session_folder = file_pair['more'].parts[-3:-1]
@@ -56,7 +57,7 @@ for session, file_pair in tqdm.tqdm(mat_file_pairs.items()):
     device = pynwb.device.Device('img_device')
     nwbfile.add_device(device)
     imaging_plane = nwbfile.create_imaging_plane(
-        name='img_pln',
+        name='ImagingPlane',
         optical_channel=nwb_ophys.OpticalChannel('Green', 'Green (ET 525/50m)', 525.),  #(nm)
         device=device,
         description='imaging plane',
@@ -73,12 +74,12 @@ for session, file_pair in tqdm.tqdm(mat_file_pairs.items()):
         trial_pulse_rate='ranged from 5-27Hz, 16Hz boundary for high/low rate',
         trial_response='correct, incorrect, no center lick, no go-tone lick',
         trial_is_good='good, bad',
-        init_tone='(ms) time of initiation tone w.r.t the start of the trial (t=0)',
-        stim_onset='(ms) time of stimulus onset w.r.t the start of the trial (t=0)',
-        stim_offset='(ms) time of stimulus offset w.r.t the start of the trial (t=0)',
-        go_tone='(ms) time of go tone w.r.t the start of the trial (t=0)',
-        first_commit='(ms) time of first commit w.r.t the start of the trial (t=0)',
-        second_commit='(ms) time of second commit w.r.t the start of the trial (t=0)'
+        init_tone='(sec) time of initiation tone w.r.t the start of the trial (t=0)',
+        stim_onset='(sec) time of stimulus onset w.r.t the start of the trial (t=0)',
+        stim_offset='(sec) time of stimulus offset w.r.t the start of the trial (t=0)',
+        go_tone='(sec) time of go tone w.r.t the start of the trial (t=0)',
+        first_commit='(sec) time of first commit w.r.t the start of the trial (t=0)',
+        second_commit='(sec) time of second commit w.r.t the start of the trial (t=0)'
     )
     for k, v in trial_columns.items():
         nwbfile.add_trial_column(name=k, description=v)
@@ -115,26 +116,26 @@ for session, file_pair in tqdm.tqdm(mat_file_pairs.items()):
     # - now insert each trial into trial table
     for k in range(outcomes.size):
         nwbfile.add_trial(
-            start_time=start_time[k],
-            stop_time=stop_time[k],
+            start_time=start_time[k]/1000,
+            stop_time=stop_time[k]/1000,
             trial_type=('High-rate' if postmat['stimrate'][k] >= 16 else 'Low-rate'),
             trial_pulse_rate=postmat['stimrate'][k],
             trial_response=trial_response_dict[outcomes[k]],
             trial_is_good=(outcomes[k] >= 0),
-            init_tone=init_tone[k],
-            stim_onset=postmat['timeStimOnsetAll'][k],
-            stim_offset=postmat['timeSingleStimOffset'][k],
-            go_tone=postmat['timeCommitCL_CR_Gotone'][k],
-            first_commit=postmat['time1stSideTry'][k],
-            second_commit=second_commit_times[k])
+            init_tone=init_tone[k]/1000,#in seconds
+            stim_onset=postmat['timeStimOnsetAll'][k]/1000,
+            stim_offset=postmat['timeSingleStimOffset'][k]/1000,
+            go_tone=postmat['timeCommitCL_CR_Gotone'][k]/1000,
+            first_commit=postmat['time1stSideTry'][k]/1000,
+            second_commit=second_commit_times[k]/1000)
 
     # ------ Image Segmentation processing module ------
     img_seg_mod = nwbfile.create_processing_module(
-        'Image-Segmentation', 'Plane segmentation and ROI identification')
-    img_segmentation = nwb_ophys.ImageSegmentation(name='img_seg')
+        'Ophys', 'Plane segmentation and ROI information')
+    img_segmentation = nwb_ophys.ImageSegmentation(name='ImageSegmentation')
     img_seg_mod.add_data_interface(img_segmentation)
     plane_segmentation = nwb_ophys.PlaneSegmentation(
-        name='pln_seg',
+        name='PlaneSegmentation',
         description='description here',
         imaging_plane=imaging_plane)
     img_segmentation.add_plane_segmentation([plane_segmentation])
@@ -175,10 +176,6 @@ for session, file_pair in tqdm.tqdm(mat_file_pairs.items()):
         description='good roi region table',
         region=(np.where(moremat['badROIs01'] == 0)[0]).tolist())
 
-    # ------ Trial Segmentation processing module ------
-    trial_seg_mod = nwbfile.create_processing_module(
-        'Trial-based-Segmentation', 'Trial-segmented data based on different event markers')
-
     # ingest each trial-based dataset, time-lock to different event types
     for data_name in ('firstSideTryAl', 'firstSideTryAl_COM', 'goToneAl', 'rewardAl', 'commitIncorrAl',
                       'initToneAl', 'stimAl_allTrs', 'stimAl_noEarlyDec', 'stimOffAl'):
@@ -191,9 +188,9 @@ for session, file_pair in tqdm.tqdm(mat_file_pairs.items()):
                         data=d.T,
                         unit='',
                         rois=roi_region,
-                        timestamps=postmat[data_name].time,
+                        timestamps=postmat[data_name].time/1000,#in seconds
                         description=f'(ROIs x time), aligned to event_id: {postmat[data_name].eventI}'))
-            trial_seg_mod.add_data_interface(dF_F)
+            img_seg_mod.add_data_interface(dF_F)
         except Exception as e:
             print(f'Error adding roi_response_series: {data_name}\n\t\tErrorMsg: {str(e)}\n', file=sys.stderr)
 
@@ -208,7 +205,7 @@ for session, file_pair in tqdm.tqdm(mat_file_pairs.items()):
         behavior_epoch.create_timeseries(
             name=behavior,
             data=postmat[behavior].traces,
-            timestamps=postmat[behavior].time,
+            timestamps=postmat[behavior].time/1000,#in seconds
             description=f'(time x trial), aligned to event_id: {postmat[behavior].eventI}')
 
     with NWBHDF5IO(os.path.join(save_path, mouse_folder + '_' + session + '.nwb'), mode='w') as io:
