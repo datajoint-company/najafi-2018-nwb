@@ -25,7 +25,7 @@ for link in tqdm(links):
             for data in tqdm(
                     response.iter_content(chunk_size=chunk_size), 
                     desc=filename + ' (MiB)',
-                    smoothing = 0.01,
+                    smoothing=0.01,
                     total=(total_length + chunk_size - 1) // chunk_size):
                 f.write(data)
         if total_length == os.path.getsize(filename + '.download'):
