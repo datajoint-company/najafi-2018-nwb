@@ -14,6 +14,7 @@ import pynwb
 from pynwb import NWBFile, NWBHDF5IO, ophys as nwb_ophys
 from collections import defaultdict
 import tqdm
+from hdmf.backends.hdf5 import H5DataIO
 
 # Read configuration
 try:
@@ -36,7 +37,7 @@ with open(Path(config['manifest']), 'r') as f:
 
 # save an NWB file for each session
 save_path = os.path.abspath(Path(config['output_dir']))
-mat_file_pairs_=[(list(mat_file_pairs.keys())[0],list(mat_file_pairs.values())[0])]
+mat_file_pairs_=[(list(mat_file_pairs.keys())[0], list(mat_file_pairs.values())[0])]
 for session, file_pair in tqdm.tqdm(mat_file_pairs_):
     moremat, postmat = (sio.loadmat(file_pair[x], struct_as_record=False, squeeze_me=True)
                         for x in ('more', 'post'))
@@ -58,7 +59,7 @@ for session, file_pair in tqdm.tqdm(mat_file_pairs_):
     nwbfile.add_device(device)
     imaging_plane = nwbfile.create_imaging_plane(
         name='ImagingPlane',
-        optical_channel=nwb_ophys.OpticalChannel('Green', 'Green (ET 525/50m)', 525.),  #(nm)
+        optical_channel=nwb_ophys.OpticalChannel('Green', 'Green (ET 525/50m)', 525.),  # (nm)
         device=device,
         description='imaging plane',
         excitation_lambda=930.,  # (nm)
@@ -122,7 +123,7 @@ for session, file_pair in tqdm.tqdm(mat_file_pairs_):
             trial_pulse_rate=postmat['stimrate'][k],
             trial_response=trial_response_dict[outcomes[k]],
             trial_is_good=(outcomes[k] >= 0),
-            init_tone=init_tone[k]/1000,#in seconds
+            init_tone=init_tone[k]/1000,  # in seconds
             stim_onset=postmat['timeStimOnsetAll'][k]/1000,
             stim_offset=postmat['timeSingleStimOffset'][k]/1000,
             go_tone=postmat['timeCommitCL_CR_Gotone'][k]/1000,
@@ -180,15 +181,16 @@ for session, file_pair in tqdm.tqdm(mat_file_pairs_):
     for data_name in ('firstSideTryAl', 'firstSideTryAl_COM', 'goToneAl', 'rewardAl', 'commitIncorrAl',
                       'initToneAl', 'stimAl_allTrs', 'stimAl_noEarlyDec', 'stimOffAl'):
         try:
-            dF_F = nwb_ophys.DfOverF(name = f'dFoF_{data_name}')
+            dF_F = nwb_ophys.DfOverF(name=f'dFoF_{data_name}')
             for tr_idx, d in enumerate(postmat[data_name].traces.transpose([2, 1, 0])):
                 dF_F.add_roi_response_series(
                     nwb_ophys.RoiResponseSeries(
                         name=f'Trial_{tr_idx:02d}',
-                        data=d.T,
-                        unit='',
+                        data=H5DataIO(d.T, compression=True),
                         rois=roi_region,
-                        timestamps=postmat[data_name].time/1000,#in seconds
+                        unit='au',
+                        starting_time=postmat[data_name].time[0]/1000,
+                        rate=(postmat[data_name].time[1] - postmat[data_name].time[0])/1000,
                         description=f'(ROIs x time), aligned to event_id: {postmat[data_name].eventI}'))
             img_seg_mod.add_data_interface(dF_F)
         except Exception as e:
@@ -204,8 +206,9 @@ for session, file_pair in tqdm.tqdm(mat_file_pairs_):
     for behavior in ['firstSideTryAl_wheelRev', 'firstSideTryAl_lick']:
         behavior_epoch.create_timeseries(
             name=behavior,
-            data=postmat[behavior].traces,
-            timestamps=postmat[behavior].time/1000,#in seconds
+            data=H5DataIO(postmat[behavior].traces, compression=True),
+            unit='unknown',
+            timestamps=postmat[behavior].time/1000,  # in seconds
             description=f'(time x trial), aligned to event_id: {postmat[behavior].eventI}')
 
     with NWBHDF5IO(os.path.join(save_path, mouse_folder + '_' + session + '.nwb'), mode='w') as io:
