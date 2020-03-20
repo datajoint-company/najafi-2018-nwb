@@ -208,7 +208,8 @@ for session, file_pair in tqdm.tqdm(mat_file_pairs_):
             name=behavior,
             data=H5DataIO(postmat[behavior].traces, compression=True),
             unit='unknown',
-            timestamps=postmat[behavior].time/1000,  # in seconds
+            starting_time=postmat[behavior].time[0]/1000, # in seconds
+            rate=(postmat[behavior].time[1] - postmat[behavior].time[0])/1000,
             description=f'(time x trial), aligned to event_id: {postmat[behavior].eventI}')
 
     with NWBHDF5IO(os.path.join(save_path, mouse_folder + '_' + session + '.nwb'), mode='w') as io:
