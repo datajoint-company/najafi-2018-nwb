@@ -37,8 +37,7 @@ with open(Path(config['manifest']), 'r') as f:
 
 # save an NWB file for each session
 save_path = os.path.abspath(Path(config['output_dir']))
-mat_file_pairs_=[(list(mat_file_pairs.keys())[0], list(mat_file_pairs.values())[0])]
-for session, file_pair in tqdm.tqdm(mat_file_pairs_):
+for session, file_pair in tqdm.tqdm(list(mat_file_pairs.items())):
     moremat, postmat = (sio.loadmat(file_pair[x], struct_as_record=False, squeeze_me=True)
                         for x in ('more', 'post'))
     mouse_folder, session_folder = file_pair['more'].parts[-3:-1]
